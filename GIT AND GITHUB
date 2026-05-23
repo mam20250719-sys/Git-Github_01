@@ -1,0 +1,187 @@
+# === ШАГ 1: ПОДГОТОВКА СРЕДЫ ===
+
+# Установить Git (вручную с официального сайта)
+# Создать аккаунт на GitHub
+# Настроить Git локально
+git config --global user.name "ВашеИмя"
+git config --global user.email "your@email.com"
+
+# Установить Python и выбрать IDE (VS Code, PyCharm и т. д.)
+# Создать виртуальное окружение
+python -m venv myproject_env
+source myproject_env/bin/activate  # Linux/Mac
+# myproject_env\Scripts\activate  # Windows (раскомментировать для Windows)
+
+# === ШАГ 2: СОЗДАНИЕ РЕПОЗИТОРИЯ ===
+
+# Клонировать репозиторий с GitHub (замените username на ваш)
+git clone https://github.com/username/python-team-app.git
+cd python-team-app
+
+# === ШАГ 3: БАЗОВАЯ РАБОТА С GIT ===
+
+# Создать файл app.py с базовым кодом
+cat > app.py << EOF
+def greet(name):
+    return f"Hello, {name}!"
+
+if __name__ == "__main__":
+    print(greet("World"))
+EOF
+
+# Добавить файл в индекс и создать коммит
+git add app.py
+git commit -m "feat: add basic greeting function"
+
+# Отправить изменения на GitHub
+git push origin main
+
+# === ШАГ 4: РАБОТА С ВЕТКАМИ ===
+
+# Участник А: создать ветку для новой функции
+git checkout -b feature/user-input
+
+# Модифицировать app.py: добавить ввод имени пользователя
+cat > app.py << EOF
+name = input("Enter your name: ")
+print(greet(name))
+
+def greet(name):
+    return f"Hello, {name}!"
+EOF
+
+# Закоммитить и запушить ветку
+git add app.py
+git commit -m "feat: add user input"
+git push origin feature/user-input
+
+# Участник Б: создать свою ветку
+git checkout -b feature/time-greeting
+
+# Модифицировать функцию приветствия с учётом времени суток
+cat > app.py << EOF
+from datetime import datetime
+
+def greet(name):
+    hour = datetime.now().hour
+    if hour < 12:
+        prefix = "Good morning"
+    elif hour < 18:
+        prefix = "Good afternoon"
+    else:
+        prefix = "Good evening"
+    return f"{prefix}, {name}!"
+
+if __name__ == "__main__":
+    name = input("Enter your name: ")
+    print(greet(name))
+EOF
+
+# Запушить изменения
+git add app.py
+git commit -m "feat: add time-based greeting"
+git push origin feature/time-greeting
+
+# === ШАГ 5: PULL REQUEST И КОД‑РЕВЬЮ ===
+
+# На GitHub: создать Pull Request для каждой ветки, оставить комментарии, утвердить и мерджить в main
+
+# После мерджа на GitHub — обновить локальную ветку main
+git checkout main
+git pull origin main
+
+# === ШАГ 6: РАЗРЕШЕНИЕ КОНФЛИКТОВ (искусственно создаём конфликт) ===
+
+# Переключиться на ветку для работы с конфликтом
+git checkout -b conflict/test
+
+# Изменить одну и ту же строку в app.py у двух участников
+cat > app.py << EOF
+from datetime import datetime
+
+def greet(name):
+    # Конфликтная строка: участник А
+    # return f"Hello, {name}! Have a nice day!"
+    # Конфликтная строка: участник Б
+    return f"Hi, {name}! It's {datetime.now().strftime('%H:%M')} now."
+
+    hour = datetime.now().hour
+    if hour < 12:
+        prefix = "Good morning"
+    elif hour < 18:
+        prefix = "Good afternoon"
+    else:
+        prefix = "Good evening"
+    # return f"{prefix}, {name}!"  # закомментируем, чтобы создать конфликт
+    return f"Hey there, {name}!"  # новая строка — конфликт
+
+if __name__ == "__main__":
+    name = input("Enter your name: ")
+    print(greet(name))
+EOF
+
+# Закоммитить конфликтные изменения
+git add app.py
+git commit -m "conflict: create merge conflict intentionally"
+git push origin conflict/test
+
+# Попытаться мерджить ветку в main (возникнет конфликт)
+git checkout main
+git merge conflict/test
+
+# Ручное разрешение конфликта: отредактировать app.py, выбрать нужные строки
+# После разрешения:
+git add app.py
+git commit -m "fix: resolve merge conflict manually"
+git push origin main
+
+# === ШАГ 7: ДОКУМЕНТАЦИЯ И ТЕСТЫ ===
+
+# Создать README.md
+cat > README.md << EOF
+# Python Team App
+
+## Как запустить
+1. Активируйте виртуальное окружение: source myproject_env/bin/activate (Linux/Mac) или myproject_env\\Scripts\\activate (Windows)
+2. Запустите: python app.py
+
+## Вклад в проект
+1. Создайте ветку: git checkout -b my-feature
+2. Внесите изменения и создайте Pull Request.
+
+## Авторы
+- Участник А
+- Участник Б
+EOF
+
+# Создать requirements.txt (если нужны зависимости)
+pip freeze > requirements.txt
+
+# Создать модульные тесты
+cat > test_app.py << EOF
+import unittest
+from app import greet
+
+class TestGreeting(unittest.TestCase):
+    def test_greet(self):
+        self.assertEqual(greet("Alice"), "Hey there, Alice!")
+
+if __name__ == '__main__':
+    unittest.main()
+EOF
+
+# Запустить тесты
+python test_app.py
+
+# Добавить и закоммитить документацию и тесты
+git add README.md requirements.txt test_app.py
+git commit -m "docs: add README, requirements, and tests"
+git push origin main
+
+# === ШАГ 8: ПЛАНИРОВАНИЕ ЗАДАЧ ===
+
+# На GitHub:
+# 1. Создать Issues для новых функций.
+# 2. Назначить задачи участникам.
+# 3. Использовать Projects для визуализации прогресса (доска Kanban).
+# 4. Связывать коммиты с Issues (в сообщении коммита писать fix #1, где #1 — номер Issue).

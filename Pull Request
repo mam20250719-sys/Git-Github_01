@@ -1,0 +1,127 @@
+# Шаг 1. Создание недостающих файлов
+
+# .gitignore
+cat > .gitignore << EOF
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Виртуальное окружение
+venv/
+env/
+
+# Файлы данных
+*.json
+
+# Логи
+*.log
+
+# IDE
+.vscode/
+.idea/
+EOF
+
+# books.json
+cat > books.json << EOF
+[]
+EOF
+
+# main.py
+cat > main.py << 'EOF'
+import json
+import os
+
+BOOKS_FILE = 'books.json'
+
+def load_books():
+    if os.path.exists(BOOKS_FILE):
+        with open(BOOKS_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return []
+
+def save_books(books):
+    with open(BOOKS_FILE, 'w', encoding='utf-8') as f:
+        json.dump(books, f, ensure_ascii=False, indent=2)
+
+def add_book(title, author):
+    books = load_books()
+    # Проверка на дубликат
+    if any(book['title'] == title and book['author'] == author for book in books):
+        print(f"Книга '{title}' уже существует.")
+        return
+    books.append({'title': title, 'author': author})
+    save_books(books)
+    print(f"Книга '{title}' добавлена.")
+
+def list_books():
+    books = load_books()
+    if not books:
+        print("Книг нет.")
+        return
+    print("Список книг:")
+    for i, book in enumerate(books, 1):
+        print(f"{i}. {book['title']} — {book['author']}")
+
+def get_stats():
+    books = load_books()
+    print(f"Всего книг: {len(books)}")
+    authors = set(book['author'] for book in books)
+    print(f"Уникальных авторов: {len(authors)}")
+
+def delete_book(index):
+    books = load_books()
+    if 0 <= index < len(books):
+        removed = books.pop(index)
+        save_books(books)
+        print(f"Книга '{removed['title']}' удалена.")
+    else:
+        print("Неверный номер книги.")
+
+if __name__ == "__main__":
+    add_book("1984", "Джордж Оруэлл")
+    list_books()
+    get_stats()
+EOF
+
+# Шаг 2. Фиксация начальных файлов
+git add .gitignore main.py books.json
+git commit -m "feat: add initial project structure and basic book management"
+git push origin main
+
+# Шаг 3. Ветка для проверки дубликатов (feature/add-book)
+git checkout -b feature/add-book
+# (код уже содержит проверку на дубликаты — см. функцию add_book)
+git add main.py
+git commit -m "feat(add-book): add duplicate check for books. Fixes #1"
+git push origin feature/add-book
+
+# Шаг 4. Ветка для статистики и списка (feature/list-and-stats)
+git checkout main
+git pull origin main
+git checkout -b feature/list-and-stats
+# (функция get_stats уже добавлена в main.py на предыдущем шаге)
+git add main.py
+git commit -m "feat(list-stats): add books statistics"
+git push origin feature/list-and-stats
+
+# Шаг 5. Ветка для удаления (feature/delete)
+git checkout main
+git pull origin main
+git checkout -b feature/delete
+# (функция delete_book уже добавлена в main.py)
+git add main.py
+git commit -m "feat(delete): implement book deletion by index"
+git push origin feature/delete
+
+# Шаг 6. Обновление main после слияния PR (выполняется на GitHub вручную:
+# 1. Создайте Pull Request для каждой ветки (feature/add-book, feature/list-and-stats, feature/delete).
+# 2. Одобрите и слейте каждый PR в main через интерфейс GitHub.
+# 3. Удалите слитые ветки через интерфейс GitHub.
+
+# Шаг 7. Финальное обновление локальной копии
+git checkout main
+git pull origin main
+
+# Шаг 8. Проверка работы приложения
+python main.py
